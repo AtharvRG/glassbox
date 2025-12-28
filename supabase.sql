@@ -122,7 +122,7 @@ insert into products (id, title, price, rating, reviews, category, keywords) val
 -- TUMBLERS & COFFEE MUGS (5 products)
 -- =====================================================
 ('tm-001', 'Stanley Quencher 40oz Tumbler', 45.00, 4.6, 34000, 'tumbler', array['tumbler', 'stanley', 'quencher', 'insulated', 'straw', 'large', 'trendy']),
-('tm-002', 'YETI Rambler 20oz Tumbler', 35.00, 4.8, 28000, 'tumbler', array['tumbler', 'yeti', 'rambler', 'insulated', 'durable', 'premium', 'stainless']),
+('tm-002', 'Yeti Rambler 20 oz Travel Mug', 35.00, 4.8, 28000, 'tumbler', array['tumbler', 'yeti', 'rambler', 'insulated', 'durable', 'premium', 'stainless']),
 ('tm-003', 'Contigo Autoseal West Loop Travel Mug', 24.99, 4.5, 42000, 'tumbler', array['tumbler', 'contigo', 'travel', 'mug', 'autoseal', 'spill-proof', 'coffee']),
 ('tm-004', 'Hydro Flask 20oz Wide Mouth with Flex Sip Lid', 34.95, 4.4, 6700, 'tumbler', array['tumbler', 'hydroflask', 'insulated', 'coffee', 'tea', 'flex sip', 'versatile']),
 ('tm-005', 'Simple Modern 24oz Classic Tumbler', 18.99, 4.6, 52000, 'tumbler', array['tumbler', 'simple modern', 'budget', 'insulated', 'straw', 'value', 'colorful'])

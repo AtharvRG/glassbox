@@ -18,7 +18,7 @@ export async function fetchProducts(keywords: string[]): Promise<Product[]> {
     }
   }
 
-  let query = supabase.from('products').select('*');
+  let query = supabase.from('products').select('id, title, price, rating, reviews, category, keywords');
   
   // If we identified a category, filter by it for more relevant results
   if (matchedCategory) {
@@ -28,7 +28,6 @@ export async function fetchProducts(keywords: string[]): Promise<Product[]> {
   const { data, error } = await query;
   
   if (error) {
-    console.error('Error fetching products:', error);
     return [];
   }
 
@@ -47,11 +46,11 @@ export async function fetchProducts(keywords: string[]): Promise<Product[]> {
 export async function fetchAllProducts(): Promise<Product[]> {
   const { data, error } = await supabase
     .from('products')
-    .select('*')
-    .order('category', { ascending: true });
+    .select('id, title, price, rating, reviews, category, keywords')
+    .order('category', { ascending: true })
+    .limit(100);
   
   if (error) {
-    console.error('Error fetching all products:', error);
     return [];
   }
   

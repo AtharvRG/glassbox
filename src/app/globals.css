@@ -2,42 +2,60 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import Alpino from Fontshare */
+@import url('https://api.fontshare.com/v2/css?f[]=alpino@400,500,600,700&display=swap');
+
 :root {
-  --background: #030712; /* Gray 950 */
-  --foreground: #f8fafc; /* Slate 50 */
+  /* New Color Palette - Mosque & Inch Worm */
+  --background: #032b2d; /* Darker teal for contrast */
+  --foreground: #f0f7f4; /* Light greenish white */
   
-  --accent-primary: #6366f1; /* Indigo 500 */
-  --accent-secondary: #a855f7; /* Purple 500 */
+  --mosque: #046264; /* Primary teal */
+  --mosque-light: #067a7d;
+  --mosque-dark: #034a4c;
   
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-bg: rgba(255, 255, 255, 0.03);
-  --glass-highlight: rgba(255, 255, 255, 0.05);
+  --inch-worm: #ABF00C; /* Accent lime green */
+  --inch-worm-light: #c4ff3d;
+  --inch-worm-dark: #8bc70a;
+  
+  --glass-border: rgba(171, 240, 12, 0.15);
+  --glass-bg: rgba(4, 98, 100, 0.2);
+  --glass-highlight: rgba(171, 240, 12, 0.08);
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  /* Add a subtle gradient background */
+  /* Add a subtle gradient background with new colors */
   background-image: 
-    radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.08) 0%, transparent 25%),
-    radial-gradient(circle at 85% 30%, rgba(168, 85, 247, 0.08) 0%, transparent 25%);
+    radial-gradient(circle at 15% 50%, rgba(4, 98, 100, 0.3) 0%, transparent 35%),
+    radial-gradient(circle at 85% 30%, rgba(171, 240, 12, 0.08) 0%, transparent 35%);
   min-height: 100vh;
 }
 
 @layer utilities {
   .glass-panel {
-    @apply bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl;
+    @apply bg-mosque/20 backdrop-blur-xl border border-inch-worm/15 shadow-2xl;
   }
   
   .glass-input {
-    @apply bg-white/5 border border-white/10 text-white placeholder:text-slate-400 focus:border-indigo-500/50 focus:bg-white/10 focus:ring-1 focus:ring-indigo-500/50 transition-all duration-300;
+    @apply bg-mosque/30 border border-inch-worm/20 text-white placeholder:text-slate-300/60 focus:border-inch-worm/50 focus:bg-mosque/40 focus:ring-1 focus:ring-inch-worm/50 transition-all duration-300;
   }
   
   .glass-button {
-    @apply bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white shadow-lg shadow-indigo-500/20 border border-white/10 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98];
+    @apply bg-mosque hover:from-mosque hover:to-mosque-light text-white shadow-lg shadow-mosque/30 border border-inch-worm/20 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98];
   }
 
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-inch-worm via-inch-worm-light to-inch-worm;
+  }
+  
+  /* Font utilities */
+  .font-heading {
+    font-family: 'Alpino', sans-serif;
+  }
+  
+  .font-body {
+    font-family: 'Nunito', sans-serif;
   }
 }

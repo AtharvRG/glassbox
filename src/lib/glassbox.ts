@@ -30,7 +30,7 @@ export class GlassBox {
       this.executionId = data.id;
       return this.executionId;
     } catch (err) {
-      console.error('GlassBox: Failed to start execution', err);
+      if (process.env.NODE_ENV === 'development') console.error('GlassBox: Failed to start execution', err);
       // We don't throw here because we don't want to break the app if logging fails
       return null;
     }
@@ -89,7 +89,7 @@ export class GlassBox {
         status: status,
         duration_ms: duration,
       }).then(({ error }) => {
-        if (error) console.error('GlassBox: Failed to log step', error);
+        if (error && process.env.NODE_ENV === 'development') console.error('GlassBox: Failed to log step', error);
       });
     }
   }

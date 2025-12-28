@@ -35,7 +35,7 @@ export async function callLLM(prompt: string): Promise<string> {
   }
 
   const response = await window.puter.ai.chat(prompt, {
-    model: 'claude-sonnet-4-5'
+    model: 'gemini-3-flash-preview'
   });
 
   // Puter.js returns: response.message.content = [{ type: "text", text: "..." }]

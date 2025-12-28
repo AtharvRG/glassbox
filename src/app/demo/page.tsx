@@ -11,8 +11,9 @@ import {
   finishExecution
 } from './actions';
 import { callLLM } from '@/lib/puter-llm';
-import { Loader2, Search, ArrowRight, Sparkles } from 'lucide-react';
+import { Loader2, Search, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 // Helper to get qualified products (client-side)
 function getQualifiedProducts(filterResult: any) {
@@ -169,12 +170,11 @@ Be VERY specific! Only valid JSON.`;
         .map((alt: any) => {
           const notSelectedInfo = rankingExplanation.not_selected?.find((n: any) => n.title === alt.title);
           // Calculate a composite score for ranking alternatives
-          // Higher rating, more reviews, better value (lower price for similar rating) = higher score
           const rating = alt.metrics?.rating || 0;
           const reviews = alt.metrics?.reviews || 0;
           const price = alt.metrics?.price || 1;
-          const normalizedReviews = Math.min(reviews / 10000, 1); // Cap at 10k for normalization
-          const valueScore = rating / Math.log10(price + 1); // Better value = higher rating per price magnitude
+          const normalizedReviews = Math.min(reviews / 10000, 1);
+          const valueScore = rating / Math.log10(price + 1);
           const compositeScore = (rating * 0.5) + (normalizedReviews * 0.2) + (valueScore * 0.3);
           return {
             ...alt,
@@ -183,16 +183,13 @@ Be VERY specific! Only valid JSON.`;
             _compositeScore: compositeScore,
           };
         })
-        // Primary sort: relevance_score DESC, Secondary sort: composite score DESC
         .sort((a: any, b: any) => {
-          // First compare by relevance score
           if (b._relevanceScore !== a._relevanceScore) {
             return b._relevanceScore - a._relevanceScore;
           }
-          // If same relevance, sort by composite metrics
           return b._compositeScore - a._compositeScore;
         })
-        .map(({ _compositeScore, _relevanceScore, ...rest }: any) => rest); // Remove temp fields
+        .map(({ _compositeScore, _relevanceScore, ...rest }: any) => rest);
 
       await logSelectionStep(executionId, best, alternatives);
       await finishExecution(executionId, 'completed');
@@ -200,7 +197,6 @@ Be VERY specific! Only valid JSON.`;
       setResult({ success: true, data: best, executionId });
 
     } catch (err) {
-      console.error(err);
       if (executionId) {
         await finishExecution(executionId, 'failed');
       }
@@ -213,26 +209,33 @@ Be VERY specific! Only valid JSON.`;
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-indigo-600/20 rounded-full blur-[120px] -z-10" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-mosque/40 rounded-full blur-[120px] -z-10" />
+      <div className="absolute bottom-0 right-0 w-[500px] h-[400px] bg-inch-worm/10 rounded-full blur-[100px] -z-10" />
       
       <div className="glass-panel max-w-xl w-full rounded-2xl p-8 md:p-12 relative z-10">
         <div className="mb-10 text-center">
-          <div className="inline-flex items-center justify-center p-3 rounded-xl bg-white/5 border border-white/10 mb-6 shadow-lg shadow-indigo-500/10">
-            <Sparkles className="h-6 w-6 text-indigo-400" />
+          <div className="inline-flex items-center justify-center mb-6">
+            <Image 
+              src="/logo.svg" 
+              alt="GlassBox Logo" 
+              width={56} 
+              height={52} 
+              className="rounded-xl border-[1.5px] border-[#ABF00C]"
+            />
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight font-heading">
             <span className="text-gradient">Competitor Finder</span>
           </h1>
-          <p className="text-slate-400 text-lg leading-relaxed max-w-sm mx-auto">
+          <p className="text-white/60 text-lg leading-relaxed max-w-sm mx-auto">
             Discover the perfect benchmark competitor using our advanced AI pipeline.
           </p>
         </div>
 
         <form onSubmit={handleSearch} className="space-y-6">
           <div className="relative group">
-            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl blur opacity-20 group-hover:opacity-30 transition-opacity duration-300" />
+            <div className="absolute inset-0 bg-gradient-to-r from-mosque to-inch-worm/50 rounded-xl blur opacity-20 group-hover:opacity-30 transition-opacity duration-300" />
             <div className="relative">
-              <Search className="absolute left-4 top-4 h-5 w-5 text-slate-400 group-focus-within:text-indigo-400 transition-colors" />
+              <Search className="absolute left-4 top-4 h-5 w-5 text-white/40 group-focus-within:text-inch-worm transition-colors" />
               <input
                 type="text"
                 value={query}
@@ -261,20 +264,20 @@ Be VERY specific! Only valid JSON.`;
         </form>
 
         {result && (
-          <div className="mt-10 pt-8 border-t border-white/10 animate-fade-in">
+          <div className="mt-10 pt-8 border-t border-inch-worm/10 animate-fade-in">
             {result.success ? (
               <div className="text-center animate-slide-up">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30 text-green-400 mb-6 shadow-[0_0_30px_-5px_rgba(74,222,128,0.3)]">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-inch-worm/20 to-inch-worm/10 border border-inch-worm/30 text-inch-worm mb-6 shadow-[0_0_30px_-5px_rgba(171,240,12,0.3)]">
                   <Search className="h-7 w-7" />
                 </div>
-                <h3 className="text-xl font-semibold text-white mb-2">Match Found</h3>
-                <p className="text-slate-300 text-lg mb-8 bg-white/5 py-3 px-6 rounded-lg inline-block border border-white/5">
+                <h3 className="text-xl font-semibold text-white mb-2 font-heading">Match Found</h3>
+                <p className="text-white/80 text-lg mb-8 bg-mosque/30 py-3 px-6 rounded-lg inline-block border border-inch-worm/20">
                   {result.data?.title || "No suitable competitor found."}
                 </p>
                 
                 <Link 
                   href={`/xray/${result.executionId}`}
-                  className="inline-flex items-center gap-2 text-sm font-medium text-indigo-400 hover:text-indigo-300 transition-colors group"
+                  className="inline-flex items-center gap-2 text-sm font-medium text-inch-worm hover:text-inch-worm-light transition-colors group"
                 >
                   View Decision Trace 
                   <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
@@ -289,7 +292,7 @@ Be VERY specific! Only valid JSON.`;
                 {result.executionId && (
                   <Link 
                     href={`/xray/${result.executionId}`}
-                    className="text-sm text-slate-500 hover:text-slate-400 underline decoration-slate-700 underline-offset-4"
+                    className="text-sm text-white/50 hover:text-white/70 underline decoration-white/30 underline-offset-4"
                   >
                     Debug Error
                   </Link>
@@ -300,8 +303,8 @@ Be VERY specific! Only valid JSON.`;
         )}
       </div>
       
-      <div className="absolute bottom-6 text-slate-600 text-xs font-medium tracking-widest uppercase opacity-50">
-        GlassBox AI • Powered by Puter.js + Claude
+      <div className="absolute bottom-6 text-white/30 text-xs font-medium tracking-widest uppercase">
+        GlassBox AI • Powered by Puter.js
       </div>
     </div>
   );
