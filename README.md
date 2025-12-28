@@ -2,7 +2,7 @@
   <img src="https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js" alt="Next.js 15" />
   <img src="https://img.shields.io/badge/TypeScript-5.x-blue?style=for-the-badge&logo=typescript" alt="TypeScript" />
   <img src="https://img.shields.io/badge/Supabase-Database-3ECF8E?style=for-the-badge&logo=supabase" alt="Supabase" />
-  <img src="https://img.shields.io/badge/Gemini-LLM-4285F4?style=for-the-badge&logo=google" alt="Gemini LLM" />
+  <img src="https://img.shields.io/badge/Puter-JS-4285F4?style=for-the-badge" alt="PuterJS" />
 </p>
 
 <h1 align="center">🔍 GlassBox</h1>
