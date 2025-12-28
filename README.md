@@ -1,4 +1,8 @@
 <p align="center">
+  <img src="./public/logo.svg" alt="GlassBox Logo" width="120" height="120" />
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js" alt="Next.js 15" />
   <img src="https://img.shields.io/badge/TypeScript-5.x-blue?style=for-the-badge&logo=typescript" alt="TypeScript" />
   <img src="https://img.shields.io/badge/Supabase-Database-3ECF8E?style=for-the-badge&logo=supabase" alt="Supabase" />
@@ -122,7 +126,7 @@ sequenceDiagram
     participant User
     participant Demo as Demo App
     participant SDK as GlassBox SDK
-    participant LLM as Gemini LLM
+    participant LLM as Puter.js LLM
     participant DB as Supabase
 
     User->>Demo: Search "Water Bottle"
@@ -405,11 +409,11 @@ The included demo application showcases GlassBox with a **Competitor Product Fin
 
 ```mermaid
 flowchart LR
-    A["🔤 User Input<br/>'Water Bottle'"] --> B["🧠 Keyword Generation<br/>(Gemini LLM)"]
+    A["🔤 User Input<br/>'Water Bottle'"] --> B["🧠 Keyword Generation<br/>(Puter.js LLM)"]
     B --> C["🔍 Candidate Search<br/>(Supabase Query)"]
     C --> D["🔸 Apply Filters<br/>(Business Rules)"]
-    D --> E["✨ Relevance Eval<br/>(Gemini LLM)"]
-    E --> F["🎯 Rank & Select<br/>(Gemini LLM)"]
+    D --> E["✨ Relevance Eval<br/>(Puter.js LLM)"]
+    E --> F["🎯 Rank & Select<br/>(Puter.js LLM)"]
     F --> G["📊 View in Dashboard"]
 
     style B fill:#a855f7

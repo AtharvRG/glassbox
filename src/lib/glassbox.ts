@@ -38,11 +38,16 @@ export class GlassBox {
 
   /**
    * Wraps a unit of logic (a step) to capture its inputs, outputs, and reasoning.
+   * @param stepName - Name of the step
+   * @param logicFn - Function containing the step logic
+   * @param inputData - Input data to log
+   * @param durationOverrideMs - Optional duration override (for client-side measured durations like LLM calls)
    */
   async step<T>(
     stepName: string,
     logicFn: () => Promise<StepResult<T>>,
-    inputData: any = {}
+    inputData: any = {},
+    durationOverrideMs?: number
   ): Promise<T> {
     // If start() wasn't called or failed, just run the logic without logging
     if (!this.executionId) {
@@ -76,7 +81,8 @@ export class GlassBox {
 
     } finally {
       // Log the result to Supabase (Fire-and-forget for performance)
-      const duration = Date.now() - startTime;
+      // Use override duration if provided, otherwise calculate from actual execution
+      const duration = durationOverrideMs ?? (Date.now() - startTime);
       
       // We don't await this because we don't want to slow down the user's request
       supabase.from('steps').insert({

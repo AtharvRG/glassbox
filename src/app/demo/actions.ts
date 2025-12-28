@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { Product, FILTER_RULES, CATEGORY_KEYWORDS } from './data';
 
 // Fetch products from Supabase that match the search keywords
-export async function fetchProducts(keywords: string[]): Promise<Product[]> {
+async function fetchProductsInternal(keywords: string[]): Promise<Product[]> {
   // Build a smart query that searches both keywords array and title
   const searchTerms = keywords.flatMap(k => k.toLowerCase().split(' '));
   
@@ -42,62 +42,8 @@ export async function fetchProducts(keywords: string[]): Promise<Product[]> {
   return filteredProducts;
 }
 
-// Fetch all products (for browsing)
-export async function fetchAllProducts(): Promise<Product[]> {
-  const { data, error } = await supabase
-    .from('products')
-    .select('id, title, price, rating, reviews, category, keywords')
-    .order('category', { ascending: true })
-    .limit(100);
-  
-  if (error) {
-    return [];
-  }
-  
-  return data || [];
-}
-
-// Initialize execution
-export async function initExecution(productName: string) {
-  const xray = new GlassBox(`Competitor Analysis: ${productName}`);
-  const executionId = await xray.start({ user_intent: 'find_benchmark_product' });
-  return executionId;
-}
-
-// Log keyword generation step
-export async function logKeywordStep(executionId: string, productName: string, keywords: string[]) {
-  const xray = new GlassBox('');
-  (xray as any).executionId = executionId;
-  (xray as any).stepCount = 0;
-  
-  await xray.step('keyword_generation', async () => ({
-    output: keywords,
-    reasoning: `Generated search terms to find relevant products in our catalog.`
-  }), { input_product: productName });
-}
-
-// Search candidates from Supabase
-export async function searchCandidates(executionId: string, keywords: string[]) {
-  const xray = new GlassBox('');
-  (xray as any).executionId = executionId;
-  (xray as any).stepCount = 1;
-
-  const results = await fetchProducts(keywords);
-
-  await xray.step('candidate_search', async () => ({
-    output: results,
-    reasoning: `Found ${results.length} products matching search terms: ${keywords.join(', ')}`
-  }), { search_keywords: keywords });
-
-  return results;
-}
-
-// Apply filters (no LLM needed)
-export async function applyFilters(executionId: string, candidates: Product[]) {
-  const xray = new GlassBox('');
-  (xray as any).executionId = executionId;
-  (xray as any).stepCount = 2;
-
+// Helper to compute filter evaluations
+function computeFilterEvaluations(candidates: Product[]) {
   const evaluations: any[] = [];
 
   candidates.forEach(item => {
@@ -145,24 +91,99 @@ export async function applyFilters(executionId: string, candidates: Product[]) {
     });
   });
 
-  const output = {
+  return {
     filters_applied: FILTER_RULES,
     total_evaluated: evaluations.length,
     passed_count: evaluations.filter(e => e.qualified).length,
     failed_count: evaluations.filter(e => !e.qualified).length,
     evaluations: evaluations,
   };
+}
 
-  await xray.step('apply_filters', async () => ({
-    output,
-    reasoning: `Applied quality filters. ${output.passed_count} passed, ${output.failed_count} rejected.`
-  }), { candidates_count: candidates.length, filters: FILTER_RULES });
+// Exported for browsing
+export async function fetchProducts(keywords: string[]): Promise<Product[]> {
+  return fetchProductsInternal(keywords);
+}
+
+// Fetch all products (for browsing)
+export async function fetchAllProducts(): Promise<Product[]> {
+  const { data, error } = await supabase
+    .from('products')
+    .select('id, title, price, rating, reviews, category, keywords')
+    .order('category', { ascending: true })
+    .limit(100);
+  
+  if (error) {
+    return [];
+  }
+  
+  return data || [];
+}
+
+// Initialize execution
+export async function initExecution(productName: string) {
+  const xray = new GlassBox(`Competitor Analysis: ${productName}`);
+  const executionId = await xray.start({ user_intent: 'find_benchmark_product' });
+  return executionId;
+}
+
+// Log keyword generation step with LLM duration passed from client
+export async function logKeywordStep(executionId: string, productName: string, keywords: string[], llmDurationMs?: number) {
+  const xray = new GlassBox('');
+  (xray as any).executionId = executionId;
+  (xray as any).stepCount = 0;
+  
+  await xray.step('keyword_generation', async () => ({
+    output: keywords,
+    reasoning: `Generated search terms to find relevant products in our catalog.`
+  }), { input_product: productName }, llmDurationMs);
+}
+
+// Search candidates from Supabase - wraps DB query inside step
+export async function searchCandidates(executionId: string, keywords: string[]) {
+  const xray = new GlassBox('');
+  (xray as any).executionId = executionId;
+  (xray as any).stepCount = 1;
+
+  // Wrap the actual DB query inside the step to capture timing
+  const results = await xray.step('candidate_search', async () => {
+    const products = await fetchProductsInternal(keywords);
+    return {
+      output: products,
+      reasoning: `Found ${products.length} products matching search terms: ${keywords.join(', ')}`
+    };
+  }, { search_keywords: keywords });
+
+  return results;
+}
+
+// Apply filters - wraps computation inside step
+export async function applyFilters(executionId: string, candidates: Product[]) {
+  const xray = new GlassBox('');
+  (xray as any).executionId = executionId;
+  (xray as any).stepCount = 2;
+
+  // Wrap the filter computation inside the step to capture timing
+  const output = await xray.step('apply_filters', async () => {
+    const result = computeFilterEvaluations(candidates);
+    return {
+      output: result,
+      reasoning: `Applied quality filters. ${result.passed_count} passed, ${result.failed_count} rejected.`
+    };
+  }, { candidates_count: candidates.length, filters: FILTER_RULES });
 
   return output;
 }
 
-// Log LLM relevance step (receives results from client)
-export async function logRelevanceStep(executionId: string, productName: string, evaluations: any[], rankedList: any[], summary: any) {
+// Log LLM relevance step with duration from client
+export async function logRelevanceStep(
+  executionId: string, 
+  productName: string, 
+  evaluations: any[], 
+  rankedList: any[], 
+  summary: any,
+  llmDurationMs?: number
+) {
   const xray = new GlassBox('');
   (xray as any).executionId = executionId;
   (xray as any).stepCount = 3;
@@ -175,11 +196,11 @@ export async function logRelevanceStep(executionId: string, productName: string,
       summary,
     },
     reasoning: `LLM evaluated ${evaluations.length} products. Found ${summary.true_matches} true matches, ${summary.close_alternatives} alternatives, removed ${summary.false_positives_removed} false positives.`
-  }), { user_query: productName, candidates_for_review: evaluations.map(e => e.title) });
+  }), { user_query: productName, candidates_for_review: evaluations.map(e => e.title) }, llmDurationMs);
 }
 
-// Log final selection step (receives results from client)
-export async function logSelectionStep(executionId: string, selected: any, alternatives: any[]) {
+// Log final selection step with duration from client
+export async function logSelectionStep(executionId: string, selected: any, alternatives: any[], llmDurationMs?: number) {
   const xray = new GlassBox('');
   (xray as any).executionId = executionId;
   (xray as any).stepCount = 4;
@@ -191,7 +212,7 @@ export async function logSelectionStep(executionId: string, selected: any, alter
       total_relevant: 1 + alternatives.length,
     },
     reasoning: `Selected "${selected?.title || 'none'}" as #1. ${alternatives.length} alternatives with reasons why each wasn't chosen.`
-  }), { ranked_candidates: [selected?.title, ...alternatives.map(a => a.title)].filter(Boolean) });
+  }), { ranked_candidates: [selected?.title, ...alternatives.map((a: any) => a.title)].filter(Boolean) }, llmDurationMs);
 }
 
 // Finish execution

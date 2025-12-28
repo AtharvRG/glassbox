@@ -1,18 +1,10 @@
 import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
-import { ArrowLeft, BrainCircuit, Check, Clock, Database, Filter, Search, X, AlertTriangle, Target, ThumbsUp, ThumbsDown, Sparkles } from 'lucide-react';
+import { ArrowLeft, Check, Clock, X, AlertTriangle, Target, ThumbsUp, ThumbsDown, Sparkles } from 'lucide-react';
 import { format } from 'date-fns';
+import { StepIconTooltip } from '@/components/StepIconTooltip';
 
 export const dynamic = 'force-dynamic';
-
-const getStepIcon = (name: string) => {
-  if (name.includes('keyword')) return <BrainCircuit className="h-5 w-5 text-inch-worm" />;
-  if (name.includes('search')) return <Search className="h-5 w-5 text-inch-worm" />;
-  if (name.includes('filter')) return <Filter className="h-5 w-5 text-inch-worm" />;
-  if (name.includes('relevance')) return <Sparkles className="h-5 w-5 text-inch-worm" />;
-  if (name.includes('select') || name.includes('rank')) return <Target className="h-5 w-5 text-inch-worm" />;
-  return <Database className="h-5 w-5 text-white/60" />;
-};
 
 const FilterEvaluationsTable = ({ evaluations }: { evaluations: any[] }) => {
   if (!evaluations || !Array.isArray(evaluations)) return null;
@@ -209,8 +201,13 @@ export default async function TraceDetail({ params }: { params: { id: string } }
               {index !== steps.length - 1 && (
                 <div className="absolute left-[19px] sm:left-[27px] top-10 bottom-[-32px] w-0.5 bg-inch-worm/20" />
               )}
-              <div className="absolute left-0 sm:left-2 top-0 bg-background border border-inch-worm/20 p-2 rounded-full shadow-lg z-10">
-                {getStepIcon(step.step_name)}
+              <div className="absolute left-0 sm:left-2 top-0 z-10">
+                <StepIconTooltip 
+                  stepName={step.step_name}
+                  input={step.input}
+                  output={step.output}
+                  reasoning={step.reasoning}
+                />
               </div>
 
               <div className="glass-panel rounded-xl overflow-hidden">

@@ -44,22 +44,24 @@ export default function DemoPage() {
       }
       executionId = newExecutionId;
 
-      // Step 2: Generate keywords via Puter LLM
+      // Step 2: Generate keywords via Puter LLM (measure time on client)
       setStatus('Generating search keywords...');
+      const keywordStartTime = Date.now();
       const keywordPrompt = `Extract 3 search keywords for: "${query}". Return ONLY a JSON array. Example: ["keyword1", "keyword2"]`;
       const keywordResponse = await callLLM(keywordPrompt);
+      const keywordDuration = Date.now() - keywordStartTime;
       const keywords = JSON.parse(keywordResponse.replace(/```json|```/g, '').trim());
-      await logKeywordStep(executionId, query, keywords);
+      await logKeywordStep(executionId, query, keywords, keywordDuration);
 
-      // Step 3: Search candidates (server-side, no LLM)
+      // Step 3: Search candidates (server-side, timing captured in action)
       setStatus('Searching candidates...');
       const candidates = await searchCandidates(executionId, keywords);
 
-      // Step 4: Apply filters (server-side, no LLM)
+      // Step 4: Apply filters (server-side, timing captured in action)
       setStatus('Applying quality filters...');
       const filterResult = await applyFilters(executionId, candidates);
 
-      // Step 5: LLM Relevance Evaluation
+      // Step 5: LLM Relevance Evaluation (measure time on client)
       setStatus('Evaluating relevance with AI...');
       const qualifiedProducts = getQualifiedProducts(filterResult);
       
@@ -71,6 +73,7 @@ export default function DemoPage() {
         return;
       }
 
+      const relevanceStartTime = Date.now();
       const relevancePrompt = `
 User searched for: "${query}"
 
@@ -87,6 +90,8 @@ Return JSON array:
 Only valid JSON, no markdown.`;
 
       const relevanceResponse = await callLLM(relevancePrompt);
+      const relevanceDuration = Date.now() - relevanceStartTime;
+      
       let evaluations: any[] = [];
       try {
         evaluations = JSON.parse(relevanceResponse.replace(/```json|```/g, '').trim());
@@ -116,9 +121,9 @@ Only valid JSON, no markdown.`;
         false_positives_removed: evaluations.filter(e => e.match_type === 'FALSE_POSITIVE').length,
       };
 
-      await logRelevanceStep(executionId, query, enrichedEvaluations, rankedList, summary);
+      await logRelevanceStep(executionId, query, enrichedEvaluations, rankedList, summary, relevanceDuration);
 
-      // Step 6: Ranking & Selection with LLM explanation
+      // Step 6: Ranking & Selection with LLM explanation (measure time on client)
       setStatus('Selecting best match...');
       const validResults = rankedList.filter(r => r.match_type !== 'FALSE_POSITIVE');
 
@@ -129,6 +134,7 @@ Only valid JSON, no markdown.`;
         return;
       }
 
+      const rankingStartTime = Date.now();
       const rankingPrompt = `
 User searched for: "${query}"
 
@@ -155,6 +161,7 @@ Be VERY specific! Only valid JSON.`;
           }))
         };
       }
+      const rankingDuration = Date.now() - rankingStartTime;
 
       // Find the winner based on LLM's choice (match by title)
       const llmWinnerTitle = rankingExplanation.winner?.title;
@@ -191,7 +198,7 @@ Be VERY specific! Only valid JSON.`;
         })
         .map(({ _compositeScore, _relevanceScore, ...rest }: any) => rest);
 
-      await logSelectionStep(executionId, best, alternatives);
+      await logSelectionStep(executionId, best, alternatives, rankingDuration);
       await finishExecution(executionId, 'completed');
       
       setResult({ success: true, data: best, executionId });
@@ -266,14 +273,16 @@ Be VERY specific! Only valid JSON.`;
         {result && (
           <div className="mt-10 pt-8 border-t border-inch-worm/10 animate-fade-in">
             {result.success ? (
-              <div className="text-center animate-slide-up">
+              <div className="text-center animate-slide-up flex flex-col items-center">
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-inch-worm/20 to-inch-worm/10 border border-inch-worm/30 text-inch-worm mb-6 shadow-[0_0_30px_-5px_rgba(171,240,12,0.3)]">
                   <Search className="h-7 w-7" />
                 </div>
                 <h3 className="text-xl font-semibold text-white mb-2 font-heading">Match Found</h3>
-                <p className="text-white/80 text-lg mb-8 bg-mosque/30 py-3 px-6 rounded-lg inline-block border border-inch-worm/20">
-                  {result.data?.title || "No suitable competitor found."}
-                </p>
+                <div className="mb-8">
+                  <p className="text-white/80 text-lg bg-mosque/30 py-3 px-6 rounded-lg inline-block border border-inch-worm/20">
+                    {result.data?.title || "No suitable competitor found."}
+                  </p>
+                </div>
                 
                 <Link 
                   href={`/xray/${result.executionId}`}
